@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrepMind AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06060a;
+    --bg2: #0d0d14;
+    --bg3: #13131e;
+    --bg4: #1a1a28;
+    --border: #ffffff12;
+    --border2: #ffffff1f;
+    --yellow: #e8ff5a;
+    --yellow-dim: #e8ff5a33;
+    --yellow-glow: #e8ff5a22;
+    --text: #f0f0f8;
+    --text2: #9898b0;
+    --text3: #60607a;
+    --green: #5affa0;
+    --red: #ff5a7a;
+    --blue: #5ab8ff;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  h1,h2,h3,.clash { font-family: 'Clash Display', sans-serif; }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: .4;
+  }
+
+  /* ── LANDING ── */
+  #landing {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 0;
+    position: relative; z-index:1;
+    padding: 40px 20px;
+  }
+  .land-badge {
+    display: inline-flex; align-items: center; gap:8px;
+    background: var(--yellow-dim); border: 1px solid var(--yellow);
+    color: var(--yellow); border-radius: 100px;
+    padding: 6px 14px; font-size: 12px; font-weight:600; letter-spacing:.06em;
+    text-transform: uppercase; margin-bottom: 32px;
+  }
+  .land-badge::before { content:'✦'; font-size:10px; }
+  .land-title {
+    font-size: clamp(52px, 10vw, 100px);
+    font-weight: 700; line-height: .95;
+    text-align: center; letter-spacing: -3px;
+    margin-bottom: 20px;
+  }
+  .land-title span { color: var(--yellow); }
+  .land-sub {
+    color: var(--text2); font-size: 18px; text-align: center;
+    max-width: 460px; margin-bottom: 52px; line-height: 1.6;
+  }
+  .land-form {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 16px; width: 100%; max-width: 520px;
+  }
+  .land-input-wrap {
+    width: 100%; position: relative;
+  }
+  .land-input {
+    width: 100%; background: var(--bg3);
+    border: 1.5px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text); font-family: 'Instrument Sans', sans-serif;
+    font-size: 17px; padding: 18px 24px;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .land-input::placeholder { color: var(--text3); }
+  .land-input:focus {
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 4px var(--yellow-glow);
+  }
+  .land-btn {
+    width: 100%; background: var(--yellow);
+    color: #06060a; font-family: 'Clash Display', sans-serif;
+    font-size: 17px; font-weight: 600;
+    border: none; border-radius: var(--radius);
+    padding: 18px; cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    letter-spacing: .01em;
+  }
+  .land-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px #e8ff5a44;
+  }
+  .land-btn:active { transform: translateY(0); }
+  .land-chips {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    margin-top: 24px;
+  }
+  .land-chip {
+    background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text2); border-radius: 100px;
+    padding: 7px 16px; font-size: 13px; cursor: pointer;
+    transition: all .15s;
+  }
+  .land-chip:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  /* ── LOADING SCREEN ── */
+  #loading {
+    display: none; position: fixed; inset:0;
+    background: var(--bg); z-index: 100;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 0;
+  }
+  #loading.active { display: flex; }
+  .load-title {
+    font-size: 28px; font-weight: 600; margin-bottom: 48px;
+    color: var(--text2);
+  }
+  .load-title span { color: var(--yellow); }
+  .load-steps { display: flex; flex-direction: column; gap: 16px; width: 360px; }
+  .load-step {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 18px;
+    opacity: .3; transform: translateY(10px);
+    transition: all .4s ease;
+  }
+  .load-step.active { opacity:1; transform:translateY(0); border-color: var(--yellow); }
+  .load-step.done { opacity:.7; transform:translateY(0); border-color: var(--green); }
+  .step-icon { font-size: 20px; width:28px; text-align:center; }
+  .step-text { font-size:14px; color: var(--text2); }
+  .load-step.active .step-text { color: var(--text); }
+  .load-bar-wrap {
+    width: 360px; height: 3px; background: var(--bg4);
+    border-radius: 99px; margin-top: 32px; overflow: hidden;
+  }
+  .load-bar {
+    height: 100%; background: var(--yellow);
+    border-radius: 99px; width: 0%;
+    transition: width .5s ease;
+  }
+
+  /* ── DASHBOARD ── */
+  #dashboard { display: none; min-height: 100vh; position: relative; z-index:1; }
+  #dashboard.active { display: block; }
+  .dash-header {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; align-items: center;
+    justify-content: space-between; height: 64px;
+    position: sticky; top:0; z-index:50;
+    backdrop-filter: blur(12px);
+  }
+  .dash-logo {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 20px; font-weight:700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dash-logo-dot { color: var(--yellow); }
+  .dash-exam-badge {
+    background: var(--yellow-dim); border: 1px solid var(--yellow);
+    color: var(--yellow); border-radius: 100px;
+    padding: 6px 14px; font-size: 13px; font-weight:600;
+  }
+  .dash-reset {
+    background: var(--bg4); border: 1px solid var(--border2);
+    color: var(--text2); border-radius: var(--radius-sm);
+    padding: 8px 14px; font-size: 13px; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    transition: all .15s;
+  }
+  .dash-reset:hover { border-color: var(--red); color: var(--red); }
+
+  /* TABS */
+  .tabs-wrap {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; gap: 4px; overflow-x: auto;
+  }
+  .tabs-wrap::-webkit-scrollbar { display:none; }
+  .tab-btn {
+    padding: 16px 20px; border: none; background: transparent;
+    color: var(--text3); font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px; font-weight:500; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .2s; white-space: nowrap;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .tab-btn:hover { color: var(--text2); }
+  .tab-btn.active { color: var(--yellow); border-bottom-color: var(--yellow); }
+  .tab-icon { font-size:16px; }
+
+  .tab-content { display: none; padding: 32px 24px; max-width: 900px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  /* ── COMMON COMPONENTS ── */
+  .section-title {
+    font-size: 24px; font-weight:600; margin-bottom: 8px;
+  }
+  .section-sub { color: var(--text2); font-size:14px; margin-bottom: 28px; }
+  .card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 16px; font-weight:600; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tag {
+    display: inline-block; border-radius: 6px;
+    padding: 3px 9px; font-size: 12px; font-weight:600;
+  }
+  .tag-yellow { background: var(--yellow-dim); color: var(--yellow); }
+  .tag-green { background: #5affa022; color: var(--green); }
+  .tag-red { background: #ff5a7a22; color: var(--red); }
+  .tag-blue { background: #5ab8ff22; color: var(--blue); }
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .ai-loading {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--text2); font-size:14px; padding: 20px 0;
+  }
+  .ai-dots span {
+    display:inline-block; width:6px; height:6px;
+    border-radius:50%; background: var(--yellow);
+    animation: dot-pulse 1.2s ease-in-out infinite;
+  }
+  .ai-dots span:nth-child(2){animation-delay:.2s}
+  .ai-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes dot-pulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+  .ai-content { line-height:1.75; color:var(--text2); font-size:15px; }
+  .ai-content strong { color: var(--text); }
+  .ai-content ul { padding-left:20px; margin: 10px 0; }
+  .ai-content li { margin-bottom: 6px; }
+  .ai-content h3 { color: var(--yellow); font-size:16px; margin: 18px 0 8px; }
+  .ai-content h4 { color: var(--text); font-size:14px; margin: 14px 0 6px; }
+  .ai-content code { background: var(--bg4); padding: 2px 6px; border-radius:4px; font-size:13px; }
+  .ai-content pre { background: var(--bg4); padding: 12px 16px; border-radius:8px; overflow-x:auto; margin:10px 0; font-size:13px; }
+  .btn {
+    border: none; border-radius: var(--radius-sm);
+    padding: 10px 20px; font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px; font-weight:600; cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-primary { background: var(--yellow); color: #06060a; }
+  .btn-primary:hover { box-shadow: 0 4px 16px #e8ff5a44; transform:translateY(-1px); }
+  .btn-ghost { background: var(--bg4); color: var(--text2); border: 1px solid var(--border2); }
+  .btn-ghost:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  /* ── TAB 1: OVERVIEW ── */
+  .overview-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-bottom: 24px;
+  }
+  @media(max-width:600px){.overview-grid{grid-template-columns:1fr;}}
+  .stat-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    text-align: center;
+  }
+  .stat-val { font-size:28px; font-weight:700; color: var(--yellow); }
+  .stat-lbl { font-size:12px; color: var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:.06em; }
+  .chips-wrap { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+  .topic-chip {
+    background: var(--bg4); border: 1px solid var(--border2);
+    color: var(--text2); border-radius: 100px;
+    padding: 8px 16px; font-size:13px; cursor:pointer;
+    transition: all .2s;
+  }
+  .topic-chip:hover { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-dim); }
+
+  /* ── TAB 2: PRACTICE ── */
+  .filter-row {
+    display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .filter-select {
+    background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text); border-radius: var(--radius-sm);
+    padding: 10px 16px; font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px; outline:none; cursor:pointer;
+    transition: border-color .2s;
+  }
+  .filter-select:focus { border-color: var(--yellow); }
+  .mcq-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px;
+    margin-bottom: 16px;
+  }
+  .mcq-q {
+    font-size:17px; font-weight:500; line-height:1.6;
+    margin-bottom: 24px; color: var(--text);
+  }
+  .mcq-options { display:flex; flex-direction:column; gap:12px; }
+  .mcq-opt {
+    background: var(--bg4); border: 1.5px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 14px 18px;
+    cursor: pointer; font-size:15px; transition: all .2s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .mcq-opt:hover:not(.disabled) { border-color: var(--yellow); background: var(--yellow-dim); color: var(--yellow); }
+  .mcq-opt.correct { border-color: var(--green); background: #5affa015; color: var(--green); }
+  .mcq-opt.wrong { border-color: var(--red); background: #ff5a7a15; color: var(--red); }
+  .mcq-opt.disabled { cursor: default; pointer-events:none; }
+  .opt-label {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg3); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0;
+  }
+  .mcq-explanation {
+    margin-top: 20px; background: var(--bg2);
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    padding: 18px; display:none;
+  }
+  .mcq-explanation.show { display:block; }
+  .exp-label { font-size:12px; font-weight:700; color: var(--yellow); text-transform:uppercase; letter-spacing:.08em; margin-bottom: 8px; }
+  .mcq-actions { display:flex; gap:12px; margin-top: 24px; }
+  .diff-badge { font-size:11px; font-weight:700; letter-spacing:.06em; }
+
+  /* ── TAB 3: TEACH ME ── */
+  .teach-topic {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom:12px;
+    overflow: hidden; transition: border-color .2s;
+  }
+  .teach-topic.open { border-color: var(--yellow); }
+  .teach-header {
+    padding: 18px 20px; cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between;
+    transition: background .2s;
+  }
+  .teach-header:hover { background: var(--bg4); }
+  .teach-name { font-size:15px; font-weight:500; }
+  .teach-chevron { font-size:18px; transition: transform .3s; color: var(--text3); }
+  .teach-topic.open .teach-chevron { transform: rotate(180deg); color: var(--yellow); }
+  .teach-body {
+    padding: 0 20px; max-height:0; overflow:hidden;
+    transition: max-height .4s ease, padding .3s;
+  }
+  .teach-topic.open .teach-body { max-height: 2000px; padding: 0 20px 20px; }
+
+  /* ── TAB 4: CHAT ── */
+  .chat-wrap {
+    display: flex; flex-direction:column;
+    height: calc(100vh - 200px); min-height: 500px;
+  }
+  .chat-messages {
+    flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:16px;
+    padding: 8px 0; margin-bottom: 16px;
+  }
+  .chat-messages::-webkit-scrollbar { width:4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--bg4); border-radius:99px; }
+  .msg { display:flex; gap:12px; max-width:85%; }
+  .msg.user { align-self:flex-end; flex-direction:row-reverse; }
+  .msg-avatar {
+    width:32px; height:32px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+  }
+  .msg.user .msg-avatar { background: var(--yellow); color: #06060a; }
+  .msg.ai .msg-avatar { background: var(--bg4); border: 1px solid var(--border2); }
+  .msg-bubble {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 16px; font-size:14px;
+    line-height:1.65; color: var(--text2);
+  }
+  .msg.user .msg-bubble { background: var(--yellow-dim); border-color: var(--yellow); color: var(--text); }
+  .chat-input-row {
+    display:flex; gap:12px; align-items: flex-end;
+  }
+  .chat-input {
+    flex:1; background: var(--bg3); border: 1.5px solid var(--border2);
+    border-radius: var(--radius); color: var(--text);
+    font-family: 'Instrument Sans', sans-serif; font-size:15px;
+    padding: 14px 18px; outline:none; resize:none;
+    min-height:52px; max-height:140px;
+    transition: border-color .2s;
+  }
+  .chat-input:focus { border-color: var(--yellow); }
+  .chat-send {
+    width:52px; height:52px; border-radius:50%;
+    background: var(--yellow); border:none; cursor:pointer;
+    font-size:20px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition: all .15s;
+  }
+  .chat-send:hover { box-shadow: 0 4px 16px #e8ff5a44; transform:scale(1.05); }
+  .chat-send:disabled { opacity:.4; cursor:default; transform:none; box-shadow:none; }
+
+  /* ── TAB 5: PROGRESS ── */
+  .progress-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;
+  }
+  @media(max-width:600px){.progress-grid{grid-template-columns:1fr 1fr;}}
+  .prog-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px; text-align:center;
+  }
+  .prog-val { font-size:36px; font-weight:700; font-family:'Clash Display',sans-serif; }
+  .prog-lbl { font-size:12px; color:var(--text3); margin-top:6px; text-transform:uppercase; letter-spacing:.06em; }
+  .topic-row {
+    display:flex; align-items:center; gap:12px; padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .topic-row:last-child { border-bottom:none; }
+  .topic-row-name { flex:1; font-size:14px; }
+  .topic-row-bar-wrap { width:120px; height:6px; background:var(--bg4); border-radius:99px; overflow:hidden; }
+  .topic-row-bar { height:100%; background:var(--yellow); border-radius:99px; transition:width .5s; }
+  .topic-row-pct { width:42px; text-align:right; font-size:13px; color:var(--text2); }
+  .empty-state {
+    text-align:center; padding: 48px 24px; color: var(--text3);
+  }
+  .empty-icon { font-size:48px; margin-bottom:12px; }
+  .empty-text { font-size:15px; }
+
+  /* FADE IN */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+  .fade-in { animation: fadeIn .4s ease forwards; }
+
+  /* scrollbar global */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius:99px; }
+</style>
+</head>
+<body>
+
+<!-- ── LANDING ── -->
+<div id="landing">
+  <div class="land-badge">AI-Powered Exam Prep</div>
+  <h1 class="land-title">Prep<span>Mind</span><br>AI</h1>
+  <p class="land-sub">Enter any exam name and get a complete personalized preparation dashboard powered by Claude AI.</p>
+  <div class="land-form">
+    <div class="land-input-wrap">
+      <input class="land-input" id="examInput" type="text" placeholder="Enter exam name (e.g. GATE, CAT, SBI PO…)" autocomplete="off">
+    </div>
+    <button class="land-btn" id="startBtn" onclick="startPrep()">Generate My Prep Dashboard →</button>
+  </div>
+  <div class="land-chips">
+    <span class="land-chip" onclick="fillExam('GATE CS')">GATE CS</span>
+    <span class="land-chip" onclick="fillExam('CAT MBA')">CAT MBA</span>
+    <span class="land-chip" onclick="fillExam('TCS NQT')">TCS NQT</span>
+    <span class="land-chip" onclick="fillExam('SBI PO')">SBI PO</span>
+    <span class="land-chip" onclick="fillExam('UPSC CSE')">UPSC CSE</span>
+    <span class="land-chip" onclick="fillExam('JEE Mains')">JEE Mains</span>
+    <span class="land-chip" onclick="fillExam('NEET UG')">NEET UG</span>
+    <span class="land-chip" onclick="fillExam('GRE')">GRE</span>
+  </div>
+</div>
+
+<!-- ── LOADING ── -->
+<div id="loading">
+  <p class="load-title">Building your <span id="loadExamName">—</span> dashboard</p>
+  <div class="load-steps">
+    <div class="load-step" id="ls0"><span class="step-icon">🔍</span><span class="step-text">Analysing exam pattern & structure…</span></div>
+    <div class="load-step" id="ls1"><span class="step-icon">📚</span><span class="step-text">Mapping complete syllabus topics…</span></div>
+    <div class="load-step" id="ls2"><span class="step-icon">🧠</span><span class="step-text">Calibrating difficulty & strategy…</span></div>
+    <div class="load-step" id="ls3"><span class="step-icon">✨</span><span class="step-text">Assembling your prep dashboard…</span></div>
+  </div>
+  <div class="load-bar-wrap"><div class="load-bar" id="loadBar"></div></div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard">
+  <header class="dash-header">
+    <div class="dash-logo">Prep<span class="dash-logo-dot">Mind</span> AI</div>
+    <div class="dash-exam-badge" id="dashExamBadge">—</div>
+    <button class="dash-reset" onclick="resetApp()">← New Exam</button>
+  </header>
+
+  <nav class="tabs-wrap">
+    <button class="tab-btn active" onclick="switchTab(0)" id="tab0"><span class="tab-icon">📊</span>Overview</button>
+    <button class="tab-btn" onclick="switchTab(1)" id="tab1"><span class="tab-icon">⚡</span>Practice</button>
+    <button class="tab-btn" onclick="switchTab(2)" id="tab2"><span class="tab-icon">💡</span>Teach Me</button>
+    <button class="tab-btn" onclick="switchTab(3)" id="tab3"><span class="tab-icon">💬</span>Ask Doubt</button>
+    <button class="tab-btn" onclick="switchTab(4)" id="tab4"><span class="tab-icon">📈</span>Progress</button>
+  </nav>
+
+  <!-- TAB 1: OVERVIEW -->
+  <div class="tab-content active" id="tc0">
+    <h2 class="section-title" id="overviewTitle">—</h2>
+    <p class="section-sub">Complete exam overview, strategy & syllabus</p>
+    <div class="overview-grid" id="statsGrid">
+      <div class="stat-card skeleton" style="height:80px"></div>
+      <div class="stat-card skeleton" style="height:80px"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Exam Pattern & Strategy</div>
+      <div id="overviewContent"><div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>Generating overview…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🗂️ Syllabus Topics <span style="color:var(--text3);font-size:12px;font-weight:400;margin-left:6px">(click to study)</span></div>
+      <div class="chips-wrap" id="syllabusChips"><div class="skeleton" style="height:36px;width:100%"></div></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PRACTICE -->
+  <div class="tab-content" id="tc1">
+    <h2 class="section-title">Practice MCQs</h2>
+    <p class="section-sub">AI-generated questions with explanations & shortcuts</p>
+    <div class="filter-row">
+      <select class="filter-select" id="topicFilter"><option value="">All Topics</option></select>
+      <select class="filter-select" id="diffFilter">
+        <option value="Medium">Medium</option>
+        <option value="Easy">Easy</option>
+        <option value="Hard">Hard</option>
+      </select>
+      <button class="btn btn-primary" onclick="generateMCQ()">Generate Questions</button>
+    </div>
+    <div id="mcqArea"><div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-text">Click "Generate Questions" to start practising</div></div></div>
+  </div>
+
+  <!-- TAB 3: TEACH ME -->
+  <div class="tab-content" id="tc2">
+    <h2 class="section-title">Teach Me</h2>
+    <p class="section-sub">Click any topic for an in-depth AI lesson</p>
+    <div id="teachTopics"><div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>Loading topics…</div></div>
+  </div>
+
+  <!-- TAB 4: ASK DOUBT -->
+  <div class="tab-content" id="tc3">
+    <h2 class="section-title">Ask Doubt</h2>
+    <p class="section-sub">Your AI tutor knows this exam inside-out</p>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg ai">
+          <div class="msg-avatar">🤖</div>
+          <div class="msg-bubble" id="chatWelcome">Hi! I'm your PrepMind AI tutor. Ask me anything about your exam — concepts, formulas, strategies, or previous year questions!</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="chatInput" placeholder="Type your doubt…" rows="1" onkeydown="chatKeydown(event)"></textarea>
+        <button class="chat-send" id="chatSendBtn" onclick="sendChat()">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: PROGRESS -->
+  <div class="tab-content" id="tc4">
+    <h2 class="section-title">Your Progress</h2>
+    <p class="section-sub">Real-time performance tracking</p>
+    <div class="progress-grid">
+      <div class="prog-card"><div class="prog-val" id="pgTotal" style="color:var(--yellow)">0</div><div class="prog-lbl">Questions</div></div>
+      <div class="prog-card"><div class="prog-val" id="pgCorrect" style="color:var(--green)">0</div><div class="prog-lbl">Correct</div></div>
+      <div class="prog-card"><div class="prog-val" id="pgAccuracy" style="color:var(--blue)">0%</div><div class="prog-lbl">Accuracy</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Topic-wise Performance</div>
+      <div id="topicProgress"><div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">Answer questions to see topic-wise stats</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Recommended Study Plan</div>
+      <div id="studyPlan"><div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>Loading plan…</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let examName = '';
+let syllabusTopics = [];
+let chatHistory = [];
+let progress = { total:0, correct:0, topics:{} };
+let currentMCQs = [];
+
+// ── CLAUDE API ──
+async function callClaude(messages, systemPrompt = '') {
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages
+  };
+  if (systemPrompt) body.system = systemPrompt;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content.map(b => b.text || '').join('');
+}
+
+function examSystem() {
+  return `You are an expert exam preparation tutor specialising in ${examName}. You have deep knowledge of the exam's syllabus, pattern, difficulty, question types, and best preparation strategies. Always tailor your responses specifically to ${examName}.`;
+}
+
+// ── LANDING ──
+function fillExam(name) {
+  document.getElementById('examInput').value = name;
+}
+
+async function startPrep() {
+  const val = document.getElementById('examInput').value.trim();
+  if (!val) { document.getElementById('examInput').focus(); return; }
+  examName = val;
+  showLoading();
+  await runLoadingSequence();
+  await initDashboard();
+}
+
+document.getElementById('examInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startPrep();
+});
+
+// ── LOADING ──
+function showLoading() {
+  document.getElementById('landing').style.display = 'none';
+  const l = document.getElementById('loading');
+  l.classList.add('active');
+  document.getElementById('loadExamName').textContent = examName;
+}
+
+async function runLoadingSequence() {
+  const steps = [0,1,2,3];
+  const bar = document.getElementById('loadBar');
+  for (let i = 0; i < steps.length; i++) {
+    document.getElementById(`ls${i}`).classList.add('active');
+    bar.style.width = `${(i+1)*25}%`;
+    await sleep(700);
+    if (i > 0) document.getElementById(`ls${i-1}`).classList.replace('active','done');
+  }
+  document.getElementById('ls3').classList.replace('active','done');
+  await sleep(400);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── INIT DASHBOARD ──
+async function initDashboard() {
+  document.getElementById('loading').classList.remove('active');
+  const dash = document.getElementById('dashboard');
+  dash.classList.add('active');
+  document.getElementById('dashExamBadge').textContent = examName;
+  document.getElementById('overviewTitle').textContent = examName + ' — Complete Prep';
+  document.getElementById('chatWelcome').textContent = `Hi! I'm your PrepMind AI tutor for ${examName}. Ask me anything — concepts, formulas, strategies, or previous year questions!`;
+
+  // Parallel: overview + syllabus
+  loadOverview();
+  await loadSyllabus();
+}
+
+// ── TAB 1: OVERVIEW ──
+async function loadOverview() {
+  try {
+    const text = await callClaude([{
+      role:'user',
+      content:`Give me a comprehensive overview of ${examName} exam including:
+1. Exam pattern (sections, duration, marking scheme)
+2. Difficulty level assessment
+3. Key preparation strategy
+4. Important topics to focus on
+5. Recommended time allocation per subject
+
+Format with clear headings using ### for sections. Be specific and concise.`
+    }], examSystem());
+
+    document.getElementById('overviewContent').innerHTML = `<div class="ai-content">${markdownToHtml(text)}</div>`;
+
+    // Stats — simple extraction
+    const statsHtml = buildStatsFromText(text);
+    document.getElementById('statsGrid').innerHTML = statsHtml;
+  } catch(e) {
+    document.getElementById('overviewContent').innerHTML = `<p style="color:var(--red)">Error loading overview. Please check your API key.</p>`;
+  }
+}
+
+function buildStatsFromText(text) {
+  // Derive rough stats from exam name patterns
+  const presets = {
+    duration: '3 Hours', sections: '3 Sections'
+  };
+  return `
+    <div class="stat-card fade-in"><div class="stat-val">${presets.duration}</div><div class="stat-lbl">Exam Duration</div></div>
+    <div class="stat-card fade-in"><div class="stat-val">${presets.sections}</div><div class="stat-lbl">Key Sections</div></div>
+  `;
+}
+
+async function loadSyllabus() {
+  try {
+    const text = await callClaude([{
+      role:'user',
+      content:`List exactly 16-20 key topics for the ${examName} exam. Return ONLY a JSON array of strings, nothing else. Example: ["Topic 1","Topic 2"]. No markdown, no explanation.`
+    }], examSystem());
+
+    let clean = text.trim().replace(/```json|```/g,'').trim();
+    syllabusTopics = JSON.parse(clean);
+
+    // Chips
+    const chipsEl = document.getElementById('syllabusChips');
+    chipsEl.innerHTML = syllabusTopics.map(t => `<span class="topic-chip" onclick="goTeach('${escHtml(t)}')">${escHtml(t)}</span>`).join('');
+
+    // Topic filter dropdown
+    const sel = document.getElementById('topicFilter');
+    sel.innerHTML = '<option value="">All Topics</option>' + syllabusTopics.map(t => `<option value="${escHtml(t)}">${escHtml(t)}</option>`).join('');
+
+    // Build teach topics
+    buildTeachTopics();
+    // Study plan
+    loadStudyPlan();
+  } catch(e) {
+    document.getElementById('syllabusChips').innerHTML = '<p style="color:var(--red);font-size:13px">Error loading syllabus.</p>';
+  }
+}
+
+// ── TAB 2: PRACTICE ──
+async function generateMCQ() {
+  const topic = document.getElementById('topicFilter').value;
+  const diff = document.getElementById('diffFilter').value;
+  const area = document.getElementById('mcqArea');
+  area.innerHTML = '<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>Generating fresh questions…</div>';
+
+  try {
+    const topicClause = topic ? `on the topic "${topic}"` : 'covering key topics';
+    const text = await callClaude([{
+      role:'user',
+      content:`Generate 3 unique ${diff} difficulty MCQ questions for ${examName} exam ${topicClause}.
+
+Return ONLY valid JSON array, no markdown, no extra text:
+[
+  {
+    "question": "...",
+    "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+    "correct": 0,
+    "explanation": "Brief explanation in 2-3 sentences.",
+    "trick": "One-line shortcut or memory trick.",
+    "topic": "Topic name"
+  }
+]
+correct is 0-indexed (0=A,1=B,2=C,3=D).`
+    }], examSystem());
+
+    let clean = text.trim().replace(/```json|```/g,'').trim();
+    currentMCQs = JSON.parse(clean);
+    renderMCQs(currentMCQs, diff);
+  } catch(e) {
+    area.innerHTML = `<p style="color:var(--red);padding:20px">Error generating questions: ${e.message}</p>`;
+  }
+}
+
+function renderMCQs(mcqs, diff) {
+  const area = document.getElementById('mcqArea');
+  const diffColor = diff === 'Easy' ? 'tag-green' : diff === 'Hard' ? 'tag-red' : 'tag-blue';
+  area.innerHTML = mcqs.map((q,qi) => `
+    <div class="mcq-card fade-in" id="mcq${qi}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span class="tag ${diffColor} diff-badge">${diff}</span>
+        <span class="tag tag-yellow" style="font-size:11px">${escHtml(q.topic)}</span>
+        <span style="color:var(--text3);font-size:12px;margin-left:auto">Q${qi+1} of ${mcqs.length}</span>
+      </div>
+      <div class="mcq-q">${escHtml(q.question)}</div>
+      <div class="mcq-options" id="opts${qi}">
+        ${q.options.map((o,oi)=>`
+          <div class="mcq-opt" onclick="answerMCQ(${qi},${oi},${q.correct},'${escHtml(q.topic)}')">
+            <span class="opt-label">${['A','B','C','D'][oi]}</span>
+            <span>${escHtml(o.replace(/^[A-D]\.\s*/,''))}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="mcq-explanation" id="exp${qi}">
+        <div class="exp-label">💡 Explanation</div>
+        <div class="ai-content" style="font-size:14px">${escHtml(q.explanation)}</div>
+        <div style="margin-top:12px;background:var(--yellow-dim);border-radius:8px;padding:10px 14px;">
+          <span style="color:var(--yellow);font-size:12px;font-weight:700">⚡ SHORTCUT: </span>
+          <span style="font-size:14px;color:var(--text)">${escHtml(q.trick)}</span>
+        </div>
+      </div>
+      <div class="mcq-actions" id="acts${qi}" style="display:none">
+        <button class="btn btn-primary" onclick="generateMCQ()">Next Questions</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function answerMCQ(qi, chosen, correct, topic) {
+  const opts = document.querySelectorAll(`#opts${qi} .mcq-opt`);
+  opts.forEach((o,i) => {
+    o.classList.add('disabled');
+    if (i === correct) o.classList.add('correct');
+    else if (i === chosen) o.classList.add('wrong');
+  });
+  document.getElementById(`exp${qi}`).classList.add('show');
+  document.getElementById(`acts${qi}`).style.display = 'flex';
+
+  // Track progress
+  progress.total++;
+  if (chosen === correct) progress.correct++;
+  if (!progress.topics[topic]) progress.topics[topic] = {total:0,correct:0};
+  progress.topics[topic].total++;
+  if (chosen === correct) progress.topics[topic].correct++;
+  updateProgress();
+}
+
+// ── TAB 3: TEACH ME ──
+function buildTeachTopics() {
+  const el = document.getElementById('teachTopics');
+  el.innerHTML = syllabusTopics.map((t,i) => `
+    <div class="teach-topic" id="tt${i}">
+      <div class="teach-header" onclick="toggleTeach(${i},'${escHtml(t)}')">
+        <span class="teach-name">${escHtml(t)}</span>
+        <span class="teach-chevron">▾</span>
+      </div>
+      <div class="teach-body" id="tb${i}">
+        <div style="color:var(--text3);font-size:13px;padding:8px 0">Click to load lesson…</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+const taughtTopics = {};
+async function toggleTeach(i, topic) {
+  const el = document.getElementById(`tt${i}`);
+  const body = document.getElementById(`tb${i}`);
+  el.classList.toggle('open');
+  if (!el.classList.contains('open')) return;
+
+  if (taughtTopics[topic]) return; // already loaded
+
+  body.innerHTML = '<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>Teaching you this topic…</div>';
+
+  try {
+    const text = await callClaude([{
+      role:'user',
+      content:`Teach me "${topic}" as it applies to ${examName} exam. Include:
+### Core Concept
+Brief explanation
+
+### Key Formulas / Rules
+Important formulas (use code blocks if needed)
+
+### Shortcuts & Tricks
+2-3 quick tricks
+
+### Solved Example
+One worked example
+
+### Exam Tips
+What to watch out for in ${examName}
+
+Keep it concise and exam-focused.`
+    }], examSystem());
+
+    body.innerHTML = `<div class="ai-content">${markdownToHtml(text)}</div>`;
+    taughtTopics[topic] = true;
+  } catch(e) {
+    body.innerHTML = `<p style="color:var(--red);font-size:13px">Error loading lesson.</p>`;
+  }
+}
+
+function goTeach(topic) {
+  switchTab(2);
+  const idx = syllabusTopics.findIndex(t => t === topic);
+  if (idx !== -1) {
+    setTimeout(() => toggleTeach(idx, topic), 200);
+    setTimeout(() => document.getElementById(`tt${idx}`)?.scrollIntoView({behavior:'smooth',block:'center'}), 300);
+  }
+}
+
+// ── TAB 4: CHAT ──
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  appendMsg('user', msg);
+  chatHistory.push({role:'user', content:msg});
+  document.getElementById('chatSendBtn').disabled = true;
+
+  appendMsg('ai', '…', 'typing');
+
+  try {
+    const text = await callClaude([...chatHistory], examSystem());
+    removeTyping();
+    appendMsg('ai', text);
+    chatHistory.push({role:'assistant', content:text});
+  } catch(e) {
+    removeTyping();
+    appendMsg('ai', `Sorry, there was an error: ${e.message}`);
+  }
+  document.getElementById('chatSendBtn').disabled = false;
+}
+
+function appendMsg(role, text, cls='') {
+  const wrap = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}${cls ? ' '+cls : ''} fade-in`;
+  const formatted = role === 'ai' ? markdownToHtml(text) : escHtml(text);
+  div.innerHTML = `
+    <div class="msg-avatar">${role==='ai'?'🤖':'👤'}</div>
+    <div class="msg-bubble${role==='ai'?' ai-content':''}"><span>${formatted}</span></div>
+  `;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.querySelector('.msg.typing');
+  if (t) t.remove();
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  // Auto-resize
+  const el = e.target;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+// ── TAB 5: PROGRESS ──
+function updateProgress() {
+  document.getElementById('pgTotal').textContent = progress.total;
+  document.getElementById('pgCorrect').textContent = progress.correct;
+  const acc = progress.total ? Math.round(progress.correct/progress.total*100) : 0;
+  document.getElementById('pgAccuracy').textContent = acc + '%';
+
+  const el = document.getElementById('topicProgress');
+  const entries = Object.entries(progress.topics);
+  if (!entries.length) return;
+  el.innerHTML = entries.map(([t,s]) => {
+    const pct = Math.round(s.correct/s.total*100);
+    return `
+      <div class="topic-row">
+        <div class="topic-row-name">${escHtml(t)}</div>
+        <div class="topic-row-bar-wrap"><div class="topic-row-bar" style="width:${pct}%"></div></div>
+        <div class="topic-row-pct">${pct}%</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadStudyPlan() {
+  try {
+    const text = await callClaude([{
+      role:'user',
+      content:`Create a concise 4-week study plan for ${examName} exam. Format as a simple week-by-week plan with specific topics. Use ### Week 1, ### Week 2 etc. Keep each week's plan to 3-4 bullet points. Be specific to ${examName} syllabus.`
+    }], examSystem());
+    document.getElementById('studyPlan').innerHTML = `<div class="ai-content">${markdownToHtml(text)}</div>`;
+  } catch(e) {
+    document.getElementById('studyPlan').innerHTML = '<p style="color:var(--red);font-size:13px">Error loading study plan.</p>';
+  }
+}
+
+// ── TABS ──
+function switchTab(idx) {
+  for(let i=0;i<5;i++){
+    document.getElementById(`tab${i}`).classList.toggle('active', i===idx);
+    document.getElementById(`tc${i}`).classList.toggle('active', i===idx);
+  }
+}
+
+// ── RESET ──
+function resetApp() {
+  examName=''; syllabusTopics=[]; chatHistory=[]; progress={total:0,correct:0,topics:{}}; currentMCQs=[];
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('landing').style.display='flex';
+  document.getElementById('examInput').value='';
+  switchTab(0);
+}
+
+// ── UTILS ──
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function markdownToHtml(md) {
+  return md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre>$1</pre>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h4>$1</h4>')
+    .replace(/^# (.+)$/gm,'<h4>$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^[-•]\s+(.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/^(?!<[hupli])/gm,'')
+    .replace(/<p><\/p>/g,'');
+}
+</script>
+</body>
+</html>
