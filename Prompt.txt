@@ -1,0 +1,43 @@
+Build a single-file HTML AI-powered exam preparation web app called "PrepMind AI".
+
+The app should work like this:
+- Landing page where user types ANY exam name (TCS NQT, CAT, GATE, SBI PO, etc.)
+- After entering exam name, show a loading screen with animated steps
+- Then unlock a full prep dashboard with 5 tabs:
+
+TAB 1 - Overview
+- Use Claude API to fetch exam pattern, difficulty, strategy, time plan for that exam
+- Show syllabus topics as clickable chips
+
+TAB 2 - Practice
+- Filter by topic and difficulty (Easy/Medium/Hard)
+- Generate fresh MCQ questions using Claude API for that specific exam
+- Show 4 options, highlight correct/wrong on click
+- Show AI explanation + shortcut trick after answering
+
+TAB 3 - Teach Me
+- List all syllabus topics as expandable cards
+- On click, Claude API teaches that topic with formulas, shortcuts, examples
+
+TAB 4 - Ask Doubt
+- Full chat interface powered by Claude API
+- AI knows the specific exam context
+- Multi-turn conversation
+
+TAB 5 - Progress
+- Track score, accuracy, topic-wise performance in real time
+
+Tech requirements:
+- Single HTML file, no frameworks, vanilla JS
+- Use Claude API: POST https://api.anthropic.com/v1/messages
+- Model: claude-sonnet-4-20250514
+- Dark theme, modern design, mobile friendly
+- All API calls use fetch(), no backend needed
+- Store state in JS variables
+
+Design:
+- Dark background (#06060a)
+- Yellow accent color (#e8ff5a)
+- Use Google Fonts (Clash Display + Instrument Sans)
+- Smooth animations and loading states
+- Clean card-based layout
